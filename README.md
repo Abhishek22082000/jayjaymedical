@@ -43,19 +43,21 @@ Data lives in `data/database.json`. Delete the file and restart the dev server t
   a small VPS. Run `npm run build && npm run start`. The `data/database.json` file will
   persist between requests.
 
-### Where it does NOT work (writes lost on every deploy)
+### Deploying to Vercel with persistent saves (Upstash Redis / Vercel KV)
 
-- **Vercel** — Vercel's filesystem is read-only at runtime. The site will *render* fine,
-  but saving a new tablet would either fail or only live until the function instance is
-  recycled. For Vercel, swap `lib/db.js` over to **Vercel KV** (free hobby tier, no card
-  required), Vercel Postgres, or a managed DB like Supabase.
+`lib/db.js` auto-detects KV credentials. When `KV_REST_API_URL` and `KV_REST_API_TOKEN`
+(or the `UPSTASH_*` equivalents) are set, it uses Redis. Otherwise it falls back to
+the local JSON file — so `npm run dev` keeps working with no setup.
 
-### Swapping JSON for Vercel KV (when ready)
+To connect KV to the deployed site:
 
-1. In the Vercel dashboard, attach a **KV** store to the project.
-2. `npm install @vercel/kv`
-3. Replace the body of `lib/db.js` with `kv.get('tablets') / kv.set('tablets', …)`.
-4. No other code changes needed — every page calls only `lib/db.js`.
+1. Open https://vercel.com/dashboard → your project → **Storage** tab.
+2. Click **Create Database** → choose **Upstash** → **KV (Redis)**.
+3. Pick the free tier, create the store, then **Connect Project** so the env vars
+   are injected into the production deployment.
+4. Go to **Deployments** → the latest one → **Redeploy** (or push a new commit) so
+   the env vars take effect.
+5. Open the site and try saving a tablet — it should persist now.
 
 ## Running the legacy PHP version
 
