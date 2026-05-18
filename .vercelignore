@@ -1,0 +1,6 @@
+# Vercel cannot run PHP — exclude server files from the deploy so the
+# vercel.json rewrite can catch every URL and show the landing page.
+*.php
+*.sql
+.git/
+.gitignore
