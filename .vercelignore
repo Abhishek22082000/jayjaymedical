@@ -1,6 +1,6 @@
-# Vercel cannot run PHP — exclude server files from the deploy so the
-# vercel.json rewrite can catch every URL and show the landing page.
+# Legacy PHP files — not used by Next.js, exclude from Vercel uploads.
 *.php
 *.sql
-.git/
-.gitignore
+
+# The static placeholder is also no longer needed once Next.js is live.
+vercel-landing.html

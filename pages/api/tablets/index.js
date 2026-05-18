@@ -1,0 +1,37 @@
+import { listTablets, createTablet } from '@/lib/db';
+
+function validate(body) {
+  const errors = {};
+  if (!body.clientName?.trim())   errors.clientName   = 'Client name is required.';
+  if (!body.tabletName?.trim())   errors.tabletName   = 'Tablet name is required.';
+  if (!body.manufacturer?.trim()) errors.manufacturer = 'Manufacturer is required.';
+  if (!body.batchNumber?.trim())  errors.batchNumber  = 'Batch number is required.';
+  const qty = Number.parseInt(body.quantity, 10);
+  if (!Number.isFinite(qty) || qty < 1) errors.quantity = 'Enter a quantity of 1 or more.';
+  if (!body.startDate) errors.startDate = 'Start date is required.';
+  if (!body.endDate)   errors.endDate   = 'Expiry date is required.';
+  if (!errors.startDate && !errors.endDate && new Date(body.endDate) < new Date(body.startDate)) {
+    errors.endDate = 'Expiry date cannot be earlier than the start date.';
+  }
+  if (body.manufacturingDate && !errors.endDate && new Date(body.manufacturingDate) > new Date(body.endDate)) {
+    errors.manufacturingDate = 'Manufacturing date cannot be after the expiry date.';
+  }
+  return errors;
+}
+
+export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    const tablets = await listTablets();
+    return res.status(200).json({ tablets });
+  }
+
+  if (req.method === 'POST') {
+    const errors = validate(req.body || {});
+    if (Object.keys(errors).length) return res.status(400).json({ errors });
+    const tablet = await createTablet(req.body);
+    return res.status(201).json({ tablet });
+  }
+
+  res.setHeader('Allow', 'GET, POST');
+  return res.status(405).json({ error: 'Method Not Allowed' });
+}

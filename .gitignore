@@ -1,9 +1,16 @@
-# Local database credentials — never commit
+# Local PHP credentials — never commit
 db.php
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.env*.local
 
 # WAMP / IDE artefacts
 *.log
 .vscode/
 .idea/
+.claude/
 Thumbs.db
 .DS_Store
