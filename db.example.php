@@ -1,8 +1,12 @@
 <?php
+/**
+ * Copy this file to db.php and fill in your local MySQL credentials.
+ * db.php is gitignored so your real password never reaches GitHub.
+ */
 $DB_HOST = 'localhost';
 $DB_NAME = 'medical';
 $DB_USER = 'root';
-$DB_PASS = 'Mirnah@181529';
+$DB_PASS = 'your-password-here';
 
 try {
     $pdo = new PDO(

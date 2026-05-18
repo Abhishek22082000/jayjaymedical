@@ -1,0 +1,9 @@
+# Local database credentials — never commit
+db.php
+
+# WAMP / IDE artefacts
+*.log
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
