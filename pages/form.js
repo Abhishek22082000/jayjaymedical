@@ -95,7 +95,7 @@ export default function FormPage({ editId, initial, tabletNames, manufacturers }
 
   return (
     <>
-      <Head><title>{editId ? 'Edit Tablet' : 'Add Tablet'} — JAY-JAY MEDICAL</title></Head>
+      <Head><title>{editId ? 'Edit Tablet' : 'Add Tablet'} — JJ Medical</title></Head>
 
       <AppBar
         actions={
@@ -203,7 +203,7 @@ export default function FormPage({ editId, initial, tabletNames, manufacturers }
             </form>
           </div>
 
-          <p className="footer">&copy; {new Date().getFullYear()} JAY-JAY MEDICAL · All rights reserved</p>
+          <p className="footer">&copy; {new Date().getFullYear()} JJ Medical · All rights reserved</p>
         </div>
       </main>
     </>

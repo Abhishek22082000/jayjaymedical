@@ -68,7 +68,7 @@ export default function Home(props) {
 
   return (
     <>
-      <Head><title>Tablet Inventory — JAY-JAY MEDICAL</title></Head>
+      <Head><title>Tablet Inventory — JJ Medical</title></Head>
 
       <AppBar
         actions={
@@ -273,7 +273,7 @@ export default function Home(props) {
           <Pager total={total} page={cur} perPage={perPage} />
         </div>
 
-        <p className="footer">&copy; {new Date().getFullYear()} JAY-JAY MEDICAL</p>
+        <p className="footer">&copy; {new Date().getFullYear()} JJ Medical</p>
       </main>
     </>
   );

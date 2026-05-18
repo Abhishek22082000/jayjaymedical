@@ -48,7 +48,7 @@ export default function Grouped({ rows, total, cur, perPage, search, status, tod
 
   return (
     <>
-      <Head><title>By Tablet — JAY-JAY MEDICAL</title></Head>
+      <Head><title>By Tablet — JJ Medical</title></Head>
 
       <AppBar
         actions={
@@ -206,7 +206,7 @@ export default function Grouped({ rows, total, cur, perPage, search, status, tod
           <Pager total={total} page={cur} perPage={perPage} />
         </div>
 
-        <p className="footer">&copy; {new Date().getFullYear()} JAY-JAY MEDICAL</p>
+        <p className="footer">&copy; {new Date().getFullYear()} JJ Medical</p>
       </main>
     </>
   );

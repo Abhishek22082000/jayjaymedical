@@ -1,14 +1,15 @@
 import Link from 'next/link';
-import Icon from './Icon';
 
 export default function AppBar({ actions }) {
   return (
     <nav className="app-bar">
       <div className="container app-bar__inner">
         <Link href="/" className="brand">
-          <span className="brand-logo"><Icon name="capsule" /></span>
+          <span className="brand-logo">
+            <img src="/logo.png" alt="JJ Medical" />
+          </span>
           <span className="brand-text">
-            JAY-JAY MEDICAL
+            JJ Medical
             <span className="brand-sub">Tablet records &amp; expiry</span>
           </span>
         </Link>
