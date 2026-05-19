@@ -22,11 +22,19 @@ export async function getServerSideProps({ query }) {
       initial: tablet || {
         clientName: '', tabletName: '', manufacturer: '', batchNumber: '',
         quantity: '', startDate: '', manufacturingDate: '', endDate: '',
+        tabletsPerStrip: '', stripsPerPacket: '',
       },
       tabletNames,
       manufacturers,
     },
   };
+}
+
+function optionalPositiveInt(v, label) {
+  if (v === '' || v === null || v === undefined) return null;
+  const n = Number.parseInt(v, 10);
+  if (!Number.isFinite(n) || n < 1) return `${label} must be 1 or more.`;
+  return null;
 }
 
 function validate(data) {
@@ -37,6 +45,16 @@ function validate(data) {
   if (!data.batchNumber.trim())  errors.batchNumber  = 'Batch number is required.';
   const qty = Number.parseInt(data.quantity, 10);
   if (!Number.isFinite(qty) || qty < 1) errors.quantity = 'Enter a quantity of 1 or more.';
+  const tpsErr = optionalPositiveInt(data.tabletsPerStrip, 'Tablets per strip');
+  if (tpsErr) errors.tabletsPerStrip = tpsErr;
+  const sppErr = optionalPositiveInt(data.stripsPerPacket, 'Strips per packet');
+  if (sppErr) errors.stripsPerPacket = sppErr;
+  if (data.quantityUnit === 'strip' && !data.tabletsPerStrip) {
+    errors.tabletsPerStrip = 'Set "Tablets per strip" to use the Strip unit.';
+  }
+  if (data.quantityUnit === 'packet' && (!data.tabletsPerStrip || !data.stripsPerPacket)) {
+    errors._form = 'Set "Tablets per strip" and "Strips per packet" to use the Packet unit.';
+  }
   if (!data.startDate) errors.startDate = 'Start date is required.';
   if (!data.endDate)   errors.endDate   = 'Expiry date is required.';
   if (!errors.startDate && !errors.endDate && new Date(data.endDate) < new Date(data.startDate)) {
@@ -48,6 +66,24 @@ function validate(data) {
   return errors;
 }
 
+function computeTotalTablets(data) {
+  const entered = Number.parseInt(data.quantity, 10);
+  if (!Number.isFinite(entered) || entered < 1) return null;
+  const tps = Number.parseInt(data.tabletsPerStrip, 10);
+  const spp = Number.parseInt(data.stripsPerPacket, 10);
+  switch (data.quantityUnit) {
+    case 'strip':
+      if (!Number.isFinite(tps) || tps < 1) return null;
+      return entered * tps;
+    case 'packet':
+      if (!Number.isFinite(tps) || tps < 1 || !Number.isFinite(spp) || spp < 1) return null;
+      return entered * tps * spp;
+    case 'tablet':
+    default:
+      return entered;
+  }
+}
+
 export default function FormPage({ editId, initial, tabletNames, manufacturers }) {
   const router = useRouter();
   const [data, setData] = useState({
@@ -56,6 +92,9 @@ export default function FormPage({ editId, initial, tabletNames, manufacturers }
     manufacturer: initial.manufacturer || '',
     batchNumber: initial.batchNumber || '',
     quantity: initial.quantity ?? '',
+    quantityUnit: 'tablet',
+    tabletsPerStrip: initial.tabletsPerStrip ?? '',
+    stripsPerPacket: initial.stripsPerPacket ?? '',
     startDate: initial.startDate || '',
     manufacturingDate: initial.manufacturingDate || '',
     endDate: initial.endDate || '',
@@ -71,14 +110,32 @@ export default function FormPage({ editId, initial, tabletNames, manufacturers }
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
+    const totalTablets = computeTotalTablets(data);
+    if (totalTablets === null) {
+      setErrors({ ...errs, _form: 'Quantity and unit produce no valid total.' });
+      return;
+    }
+
     setBusy(true);
     try {
       const url = editId ? `/api/tablets/${editId}` : '/api/tablets';
       const method = editId ? 'PUT' : 'POST';
+      const payload = {
+        clientName: data.clientName,
+        tabletName: data.tabletName,
+        manufacturer: data.manufacturer,
+        batchNumber: data.batchNumber,
+        quantity: totalTablets,
+        tabletsPerStrip: data.tabletsPerStrip === '' ? null : Number.parseInt(data.tabletsPerStrip, 10),
+        stripsPerPacket: data.stripsPerPacket === '' ? null : Number.parseInt(data.stripsPerPacket, 10),
+        startDate: data.startDate,
+        manufacturingDate: data.manufacturingDate,
+        endDate: data.endDate,
+      };
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -144,7 +201,7 @@ export default function FormPage({ editId, initial, tabletNames, manufacturers }
                   <datalist id="dl-manufacturers">{manufacturers.map((n) => <option key={n} value={n} />)}</datalist>
                   {errors.manufacturer && <div className="error-text">{errors.manufacturer}</div>}
                 </div>
-                <div className="field col-7">
+                <div className="field col-12">
                   <label htmlFor="batchNumber" className="field-label"><Icon name="upc-scan" /> Batch Number</label>
                   <div className="input-group">
                     <span className="prefix">#</span>
@@ -153,11 +210,43 @@ export default function FormPage({ editId, initial, tabletNames, manufacturers }
                   </div>
                   {errors.batchNumber && <div className="error-text">{errors.batchNumber}</div>}
                 </div>
+
+                <div className="field col-6">
+                  <label htmlFor="tabletsPerStrip" className="field-label"><Icon name="stack" /> Tablets per Strip</label>
+                  <input id="tabletsPerStrip" type="number" min="1" step="1" value={data.tabletsPerStrip} onChange={onChange('tabletsPerStrip')}
+                         className={`input ${errors.tabletsPerStrip ? 'input--invalid' : ''}`} placeholder="e.g. 10" />
+                  {errors.tabletsPerStrip && <div className="error-text">{errors.tabletsPerStrip}</div>}
+                </div>
+                <div className="field col-6">
+                  <label htmlFor="stripsPerPacket" className="field-label"><Icon name="box-seam" /> Strips per Packet <small>(optional)</small></label>
+                  <input id="stripsPerPacket" type="number" min="1" step="1" value={data.stripsPerPacket} onChange={onChange('stripsPerPacket')}
+                         className={`input ${errors.stripsPerPacket ? 'input--invalid' : ''}`} placeholder="e.g. 10" />
+                  {errors.stripsPerPacket && <div className="error-text">{errors.stripsPerPacket}</div>}
+                </div>
+
                 <div className="field col-5">
-                  <label htmlFor="quantity" className="field-label"><Icon name="stack" /> Quantity (strips / units)</label>
+                  <label htmlFor="quantityUnit" className="field-label"><Icon name="list-ul" /> Unit</label>
+                  <select id="quantityUnit" value={data.quantityUnit} onChange={onChange('quantityUnit')}
+                          className="input">
+                    <option value="tablet">Tablet</option>
+                    <option value="strip">Strip</option>
+                    <option value="packet">Packet</option>
+                  </select>
+                </div>
+                <div className="field col-7">
+                  <label htmlFor="quantity" className="field-label"><Icon name="stack" /> {(() => {
+                    if (data.quantityUnit === 'strip')  return 'Number of strips';
+                    if (data.quantityUnit === 'packet') return 'Number of packets';
+                    return 'Number of tablets';
+                  })()}</label>
                   <input id="quantity" type="number" min="1" step="1" value={data.quantity} onChange={onChange('quantity')}
-                         className={`input ${errors.quantity ? 'input--invalid' : ''}`} placeholder="e.g. 100" />
+                         className={`input ${errors.quantity ? 'input--invalid' : ''}`} placeholder="e.g. 5" />
                   {errors.quantity && <div className="error-text">{errors.quantity}</div>}
+                  {data.quantityUnit !== 'tablet' && computeTotalTablets(data) !== null && (
+                    <div className="muted" style={{ marginTop: 6, fontSize: 13 }}>
+                      = {computeTotalTablets(data)} tablets total
+                    </div>
+                  )}
                 </div>
               </div>
 
