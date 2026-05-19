@@ -14,3 +14,6 @@ out/
 .claude/
 Thumbs.db
 .DS_Store
+
+# Nested Flutter app — lives in its own GitHub repo (Abhishek22082000/jayjayapp)
+/jayjayapp/

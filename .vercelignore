@@ -4,3 +4,6 @@
 
 # The static placeholder is also no longer needed once Next.js is live.
 vercel-landing.html
+
+# Nested Flutter app — separate repo, must not be uploaded with the Next.js deploy.
+jayjayapp/
