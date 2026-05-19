@@ -8,14 +8,6 @@ function validate(body) {
   if (!body.batchNumber?.trim())  errors.batchNumber  = 'Batch number is required.';
   const qty = Number.parseInt(body.quantity, 10);
   if (!Number.isFinite(qty) || qty < 1) errors.quantity = 'Enter a quantity of 1 or more.';
-  if (body.tabletsPerStrip !== undefined && body.tabletsPerStrip !== null && body.tabletsPerStrip !== '') {
-    const n = Number.parseInt(body.tabletsPerStrip, 10);
-    if (!Number.isFinite(n) || n < 1) errors.tabletsPerStrip = 'Tablets per strip must be 1 or more.';
-  }
-  if (body.stripsPerPacket !== undefined && body.stripsPerPacket !== null && body.stripsPerPacket !== '') {
-    const n = Number.parseInt(body.stripsPerPacket, 10);
-    if (!Number.isFinite(n) || n < 1) errors.stripsPerPacket = 'Strips per packet must be 1 or more.';
-  }
   if (!body.startDate) errors.startDate = 'Start date is required.';
   if (!body.endDate)   errors.endDate   = 'Expiry date is required.';
   if (!errors.startDate && !errors.endDate && new Date(body.endDate) < new Date(body.startDate)) {
